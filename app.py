@@ -141,19 +141,6 @@ if user_input:
 
     translit_map = update_translit_dict_from_user(user_input, translit_map, csv_path)
 
-    # --- Special "Mubaraka" filter ---
-    if "mubaraka" in user_input.lower():
-        words = user_input.strip().split()
-        cleaned_words = []
-        for word in words:
-            lw = word.lower()
-            # Keep "mubaraka" and other valid words 
-            if re.fullmatch(r"[0-9]+[a-zA-Z]*", lw):  # e.g., 1447, 1447H
-                continue
-        cleaned_words.append(word)
-    cleaned_input = " ".join(cleaned_words)
-    result = transliterate_sentence(cleaned_input, translit_map)
-else:
     result = transliterate_sentence(user_input, translit_map)
 
     html_output = format_for_word_export(result)
