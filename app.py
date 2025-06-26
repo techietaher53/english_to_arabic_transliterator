@@ -133,12 +133,6 @@ if user_input:
     # Update dictionary with new words
     translit_map = update_translit_dict_from_user(user_input, translit_map, csv_path)
 
-    # --- Special "Mubaraka" filter ---
-    if user_input:
-        st.session_state.messages.append({"role": "user", "content": user_input})
-    with st.chat_message("user"):
-        st.markdown(f"```\n{user_input}\n```")
-
     translit_map = update_translit_dict_from_user(user_input, translit_map, csv_path)
 
     result = transliterate_sentence(user_input, translit_map)
