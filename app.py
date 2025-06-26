@@ -5,6 +5,7 @@ import io
 import base64
 import os
 import hashlib
+from datetime import datetime
 
 # ---- Load font from .ttf file and inject into app ----
 def load_custom_font(font_path, font_name):
@@ -29,7 +30,7 @@ def load_custom_font(font_path, font_name):
     </style>
     """
 
-# ---- Load CSV into dictionary ----
+# ---- Load transliteration dictionary ----
 def load_transliteration_dict(csv_path="transliteration_dataset.csv"):
     translit_dict = {}
     with open(csv_path, 'r', encoding='utf-8') as f:
@@ -41,7 +42,7 @@ def load_transliteration_dict(csv_path="transliteration_dataset.csv"):
                 translit_dict[eng] = arb
     return translit_dict
 
-# ---- Transliteration Logic ----
+# ---- Transliteration logic ----
 def transliterate_sentence(sentence, translit_dict):
     lines = sentence.strip().split('\n')
     transliterated_lines = []
@@ -59,11 +60,11 @@ def transliterate_sentence(sentence, translit_dict):
 
     return "\n".join(transliterated_lines)
 
-# ---- Word-safe formatter ----
+# ---- Format output for Microsoft Word ----
 def format_for_word_export(text):
     return f"<div dir='rtl' style='font-size:22px; line-height:2; font-family:Tahoma;'>\n{text.replace(chr(10), '<br>')}\n</div>"
 
-# ---- Update dict from user ----
+# ---- Update dictionary from user input ----
 def update_translit_dict_from_user(input_text, translit_dict, csv_path="transliteration_dataset.csv"):
     words = set(input_text.strip().lower().split())
     if "used_input_keys" not in st.session_state:
@@ -92,13 +93,13 @@ def update_translit_dict_from_user(input_text, translit_dict, csv_path="translit
                     st.error(f"❌ Error writing to CSV: {e}")
     return translit_dict
 
-# ---- Page Setup ----
-st.set_page_config(page_title="🔤 Word-Compatible Transliteration Bot", layout="centered")
-st.title("📄 Word-Formatted Arabic Transliterator")
+# ---- Page configuration ----
+st.set_page_config(page_title="📄 Word-Formatted Arabic Transliterator", layout="centered")
+st.title("🔤 Arabic Transliterator — Word Compatible")
 
-# ---- Font Selection ----
-st.sidebar.markdown("### 🧩 Settings")
-selected_font = st.sidebar.selectbox("🔤 Arabic Font", ["Al-Kanz", "Kanz-al-Marjaan"])
+# ---- Sidebar: Font selector ----
+st.sidebar.markdown("### 🔠 Font Settings")
+selected_font = st.sidebar.selectbox("Choose Arabic Font", ["Al-Kanz", "Kanz-al-Marjaan"])
 font_files = {
     "Al-Kanz": "Al-Kanz for Windows.ttf",
     "Kanz-al-Marjaan": "Kanz-al-Marjaan.ttf"
@@ -106,7 +107,7 @@ font_files = {
 font_css = load_custom_font(font_files[selected_font], selected_font)
 st.markdown(font_css, unsafe_allow_html=True)
 
-# ---- Load transliteration data ----
+# ---- Load dictionary and handle CSV reload ----
 csv_path = "transliteration_dataset.csv"
 translit_map = load_transliteration_dict(csv_path)
 
@@ -114,7 +115,7 @@ if st.sidebar.button("🔁 Reload CSV"):
     st.cache_data.clear()
     st.rerun()
 
-# ---- Chat Input ----
+# ---- Chat UI ----
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -129,21 +130,24 @@ if user_input:
     with st.chat_message("user"):
         st.markdown(f"```\n{user_input}\n```")
 
+    # Update dictionary with new words
     translit_map = update_translit_dict_from_user(user_input, translit_map, csv_path)
 
-    # Custom filter: remove numbers near "mubaraka"
-if "mubaraka" in user_input.lower():
-    words = user_input.strip().split()
-    cleaned_words = []
-    for word in words:
-        # Remove if it's a number or a number with letter suffix (like 1447H)
-        if re.fullmatch(r"[0-9]+[a-zA-Z]*", word):
-            continue
-        cleaned_words.append(word)
-    cleaned_input = " ".join(cleaned_words)
-    result = transliterate_sentence(cleaned_input, translit_map)
-else:
-    result = transliterate_sentence(user_input, translit_map)
+    # --- Special "Mubaraka" filter ---
+    if "mubaraka" in user_input.lower():
+        words = user_input.strip().split()
+        cleaned_words = []
+        for word in words:
+            # Remove number-like words (e.g., 1447, 1447H)
+            if re.fullmatch(r"[0-9]+[a-zA-Z]*", word):
+                continue
+            cleaned_words.append(word)
+        cleaned_input = " ".join(cleaned_words)
+        result = transliterate_sentence(cleaned_input, translit_map)
+    else:
+        result = transliterate_sentence(user_input, translit_map)
+
+    # Format for Word
     html_output = format_for_word_export(result)
 
     with st.chat_message("assistant"):
