@@ -131,7 +131,20 @@ if user_input:
 
     translit_map = update_translit_dict_from_user(user_input, translit_map, csv_path)
 
+    # Custom filter: remove numbers near "mubaraka"
+if "mubaraka" in user_input.lower():
+    words = user_input.strip().split()
+    cleaned_words = []
+    for word in words:
+        # Remove if it's a number or a number with letter suffix (like 1447H)
+        if re.fullmatch(r"[0-9]+[a-zA-Z]*", word):
+            continue
+        cleaned_words.append(word)
+    cleaned_input = " ".join(cleaned_words)
+    result = transliterate_sentence(cleaned_input, translit_map)
+else:
     result = transliterate_sentence(user_input, translit_map)
+
     html_output = format_for_word_export(result)
 
     with st.chat_message("assistant"):
