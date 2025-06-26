@@ -146,13 +146,15 @@ if user_input:
         words = user_input.strip().split()
         cleaned_words = []
         for word in words:
-            if re.fullmatch(r"[0-9]+[a-zA-Z]*", word):
+            lw = word.lower()
+            # Keep "mubaraka" and other valid words 
+            if re.fullmatch(r"[0-9]+[a-zA-Z]*", lw):  # e.g., 1447, 1447H
                 continue
-            cleaned_words.append(word)
-        cleaned_input = " ".join(cleaned_words)
-        result = transliterate_sentence(cleaned_input, translit_map)
-    else:
-        result = transliterate_sentence(user_input, translit_map)
+        cleaned_words.append(word)
+    cleaned_input = " ".join(cleaned_words)
+    result = transliterate_sentence(cleaned_input, translit_map)
+else:
+    result = transliterate_sentence(user_input, translit_map)
 
     html_output = format_for_word_export(result)
 
