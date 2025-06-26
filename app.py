@@ -135,7 +135,7 @@ if user_input:
 
     # --- Special "Mubaraka" filter ---
     if user_input:
-    st.session_state.messages.append({"role": "user", "content": user_input})
+        st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(f"```\n{user_input}\n```")
 
