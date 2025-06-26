@@ -134,17 +134,32 @@ if user_input:
     translit_map = update_translit_dict_from_user(user_input, translit_map, csv_path)
 
     # --- Special "Mubaraka" filter ---
+    if user_input:
+    st.session_state.messages.append({"role": "user", "content": user_input})
+    with st.chat_message("user"):
+        st.markdown(f"```\n{user_input}\n```")
+
+    translit_map = update_translit_dict_from_user(user_input, translit_map, csv_path)
+
+    # --- Special "Mubaraka" filter ---
     if "mubaraka" in user_input.lower():
         words = user_input.strip().split()
         cleaned_words = []
         for word in words:
-            # Remove number-like words (e.g., 1447, 1447H)
             if re.fullmatch(r"[0-9]+[a-zA-Z]*", word):
                 continue
             cleaned_words.append(word)
         cleaned_input = " ".join(cleaned_words)
         result = transliterate_sentence(cleaned_input, translit_map)
     else:
+        result = transliterate_sentence(user_input, translit_map)
+
+    html_output = format_for_word_export(result)
+
+    with st.chat_message("assistant"):
+        st.markdown(html_output, unsafe_allow_html=True)
+        st.session_state.messages.append({"role": "assistant", "content": result})
+
         result = transliterate_sentence(user_input, translit_map)
 
     # Format for Word
