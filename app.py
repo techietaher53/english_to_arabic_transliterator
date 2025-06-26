@@ -144,7 +144,6 @@ if "mubaraka" in user_input.lower():
     result = transliterate_sentence(cleaned_input, translit_map)
 else:
     result = transliterate_sentence(user_input, translit_map)
-
     html_output = format_for_word_export(result)
 
     with st.chat_message("assistant"):
